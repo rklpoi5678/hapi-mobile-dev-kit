@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.token
+.secrets/
+settings.json
+hapi.db
+runner.state.json
+logs/
+.DS_Store

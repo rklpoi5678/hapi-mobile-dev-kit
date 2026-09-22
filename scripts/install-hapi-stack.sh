@@ -1,16 +1,35 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+NPM_PREFIX="$HOME/.local"
+
+mkdir -p "$NPM_PREFIX"
+npm config set prefix "$NPM_PREFIX"
+
+export PATH="$NPM_PREFIX/bin:$PATH"
+
+if ! grep -q 'HOME/.local/bin' "$HOME/.profile" 2>/dev/null; then
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
+fi
+
+echo "Installing HAPI..."
 npm install -g @twsxtd/hapi --registry=https://registry.npmjs.org
+
+echo "Installing OpenCode..."
 npm install -g opencode-ai
 
-echo "HAPI: $(command -v hapi)"
+echo
+echo "Checking installation..."
+
+command -v hapi
 hapi --help >/dev/null
 
-echo "OpenCode: $(command -v opencode)"
-opencode -v
+command -v opencode
+opencode --version
 
 echo
-printf '%s\n' "Installed. Configure your provider credentials next, then run:" \
-  "  hapi hub --relay" \
-  "  hapi runner start --workspace-root \"$HOME/projects\""
+echo "Installation complete."
+echo
+echo "Next:"
+echo "  hapi hub --relay"
+echo "  hapi runner start --workspace-root \"$HOME/projects\""

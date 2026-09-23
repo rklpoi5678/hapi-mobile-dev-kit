@@ -7,7 +7,7 @@ if ! command -v apt-get >/dev/null 2>&1; then
 fi
 
 sudo apt-get update
-sudo apt-get install -y git curl ca-certificates build-essential jq
+sudo apt-get install -y git curl ca-certificates build-essential jq rsync
 
 if command -v node >/dev/null 2>&1; then
   major="$(node -p 'process.versions.node.split(`.`)[0]')"

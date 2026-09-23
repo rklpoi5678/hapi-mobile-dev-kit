@@ -1,105 +1,149 @@
-# 한국어 가이드
+# HAPI Mobile Dev Kit — 한국어
 
-이 레포는 **폰만 있어도 내 프로젝트를 계속 처리하기 위한 개인 개발환경**을 재현합니다.
+**노트북을 켜두지 않아도 폰에서 AI 코딩을 이어가기 위한 개인 개발환경**입니다.
 
-핵심은 노트북을 원격 조종하는 것이 아니라, 항상 켜져 있는 Linux 서버에서 AI 코딩 에이전트를 실행하고 HAPI로 iPhone/Android에서 제어하는 것입니다.
+핵심은 노트북 원격조종이 아닙니다. 항상 켜져 있는 Linux 서버에서 에이전트를 실행하고, HAPI로 iPhone/Android에서 제어합니다.
+
+> 여기서 “오프라인”은 **노트북이 꺼져 있어도 된다**는 뜻입니다. 폰과 서버의 인터넷 연결은 필요합니다.
 
 ## 구조
 
 ```text
-아이폰 / 안드로이드
-        ↓
-      HAPI
-        ↓
-Oracle Cloud 등 Linux 서버
-        ↓
-HAPI Hub + Runner
-        ↓
-OpenCode / Codex
-        ↓
-Alibaba Coding Plan / BytePlus Coding Plan
-        ↓
-Git 프로젝트
+아이폰 / 안드로이드 / 브라우저
+              ↓
+             HAPI
+              ↓
+      항상 켜진 Linux VM
+              ↓
+       HAPI Hub + Runner
+              ↓
+ Claude Code · Codex · OpenCode
+              ↓
+          Git 저장소
 ```
 
-## 1. 서버 준비
+Oracle Cloud VM은 이 구조에 잘 맞는 선택지 중 하나입니다. 항상 켜둘 수 있는 Linux 서버라면 무엇이든 사용할 수 있습니다.
 
-Ubuntu 계열 서버를 기준으로 합니다.
+## 설치
 
 ```bash
+git clone https://github.com/rklpoi5678/hapi-mobile-dev-kit.git
+cd hapi-mobile-dev-kit
+
 ./scripts/bootstrap-ubuntu.sh
 ./scripts/install-hapi-stack.sh
-```
-
-설치 후 다음을 확인합니다.
-
-```bash
-hapi --help
-opencode -v
-```
-
-## 2. 프로젝트 폴더
-
-```bash
 mkdir -p ~/projects
-cd ~/projects
-# 실제 프로젝트를 clone
-```
-
-HAPI Runner는 `~/projects`만 탐색하도록 제한합니다.
-
-## 3. Alibaba / BytePlus 연결
-
-Alibaba는 공식 OpenCode Coding Plan 설정을 제공합니다. 예시는 `config/opencode.alibaba.example.json`을 참고하세요.
-
-실제 API 키를 이 레포에 넣지 마세요. 서버의 `~/.config/opencode/opencode.json`에만 저장합니다.
-
-BytePlus도 OpenCode를 Coding Plan 지원 도구로 공식 지원합니다. BytePlus 콘솔에서 발급한 전용 키와 최신 공식 OpenCode 설정값을 사용하세요. 제공사 설정은 바뀔 수 있으므로 이 레포는 키나 고정 엔드포인트를 대신 관리하지 않습니다.
-
-## 4. HAPI 상시 실행
-
-```bash
 ./scripts/install-services.sh ~/projects
+./scripts/doctor.sh
 ```
 
-상태 확인:
+원하는 에이전트도 서버에 설치합니다.
 
 ```bash
-systemctl --user status hapi-hub
-systemctl --user status hapi-runner
+npm install -g @openai/codex
+npm install -g @anthropic-ai/claude-code
 ```
 
-로그:
+각 에이전트는 서버에서 한 번 인증합니다. OpenCode는 `install-hapi-stack.sh`가 설치합니다.
 
-```bash
-journalctl --user -u hapi-hub -f
-journalctl --user -u hapi-runner -f
-```
+## 폰에서 사용
 
-## 5. 폰 연결
+1. HAPI 웹/네이티브 클라이언트를 페어링합니다.
+2. **New Session**을 엽니다.
+3. 서버를 선택합니다.
+4. `~/projects/<repo>`를 선택합니다.
+5. Claude Code, Codex, OpenCode 등 설치된 에이전트를 고릅니다.
+6. 승인, 파일, Git, 실행 결과는 서버에서 처리됩니다.
 
-첫 테스트는 PWA를 권장합니다.
-
-- iPhone: Safari → HAPI URL → 공유 → 홈 화면에 추가
-- Android: Chrome → HAPI URL → 앱 설치/홈 화면 추가
-
-HAPI Hub는 기본적으로 `--relay`를 사용합니다. 포트 3006을 인터넷에 직접 공개하지 않아도 됩니다.
-
-## 6. 실제 사용
-
-폰에서 **New Session** → 서버 선택 → `~/projects/<project>` → OpenCode를 선택합니다.
-
-첫 검증 프롬프트 예시:
+첫 검증은 이 정도면 충분합니다.
 
 ```text
-README.md 마지막에 "HAPI remote test"를 추가하고 git diff를 보여줘. 아직 commit하지 마.
+README.md를 읽고 의미 없는 한 줄을 수정한 뒤 git diff를 보여줘. 아직 commit하지 마.
 ```
 
-이것이 성공하면 `폰 → HAPI → 서버 → OpenCode → 모델 제공사 → 실제 repo` 전체 경로가 정상입니다.
+## Skills · Plugins · MCP
 
-## 운영 원칙
+HAPI는 에이전트와 같은 서버 환경에서 스킬을 찾습니다.
 
-- HAPI와 OpenCode는 upstream 업데이트를 그대로 따라갑니다.
-- API 키는 절대 Git에 저장하지 않습니다.
-- 실제 프로젝트와 이 설치 레포를 분리합니다.
-- 처음에는 HAPI Relay를 사용하고, 문제가 있을 때만 Tailscale/Cloudflare Tunnel 등을 추가합니다.
+```text
+~/.agents/skills/      공용 스킬
+~/.claude/skills/      Claude 전용
+~/.codex/skills/       Codex 전용
+```
+
+프로젝트 안의 `.agents/skills`, `.claude/skills`, `.codex/skills`도 저장소와 함께 관리할 수 있습니다.
+
+플러그인과 MCP는 **HAPI에 다시 설치하는 것이 아니라 각 에이전트의 원래 설정에 등록**하는 방향이 기본입니다. Claude Code/Codex에서 먼저 정상 동작을 확인한 뒤 HAPI로 그 에이전트를 실행합니다.
+
+```text
+Agent CLI = 인증 · Skills · Plugins · MCP · 모델
+HAPI      = 원격 세션 · 승인 · 파일 · 모바일 제어
+```
+
+## Obsidian vs HAPI
+
+둘은 경쟁 관계가 아니라 역할이 다릅니다.
+
+**Obsidian**
+- 장기 기억
+- 기획/설계 문서
+- 조사 자료
+- 회의 기록
+- RAG / 지식베이스
+
+**HAPI**
+- 실제 에이전트 실행
+- 코드 수정
+- 테스트/터미널
+- 승인
+- 폰에서 원격 개발
+
+앞으로도 Obsidian 전체를 HAPI에 복제하기보다, **현재 작업에 필요한 문맥만 선택해서 에이전트 세션으로 전달**하는 방향이 맞습니다.
+
+## Roadmap
+
+### 1. 폰 중심 실행환경 안정화
+- Oracle/Linux 상시 실행
+- systemd Hub + Runner
+- Claude Code / Codex / OpenCode
+- 진단 스크립트
+
+### 2. Agent bootstrap
+- 공용 Skills 자동 배치
+- Claude/Codex 설정 재현
+- MCP 등록 템플릿
+- Plugin 상태 점검
+
+### 3. Knowledge bridge
+- Obsidian은 장기 기억과 기획의 source of truth
+- HAPI는 실행 계층
+- 필요한 문서만 task-scoped context로 전달
+- 전체 Vault 동기화 대신 선택적 RAG
+
+### 4. Decision layer
+`agent-decision-workbench`를 HAPI 위의 판단/오케스트레이션 계층으로 연결합니다.
+
+```text
+사용자 / Supervisor
+        ↓
+   CAO orchestration
+    ↙           ↘
+Developer     Reviewer
+        ↓
+ Jev Evaluate State
+        ↓
+최종 판단 / 재시도
+```
+
+Jev를 HAPI 안에 직접 박아 넣기보다 **MCP 또는 CLI sidecar**로 연결하는 방향을 우선합니다. HAPI는 실행/UI, Jev는 애매한 선택을 평가하는 decision layer로 유지합니다.
+
+## Provider 주의점
+
+먼저 해당 Agent CLI에서 provider 호출이 정상인지 확인한 뒤 HAPI를 디버깅하세요. Agent와 provider 자체의 호환성 문제를 HAPI가 해결해주지는 않습니다.
+
+## 보안
+
+- API Key/Auth 파일을 Git에 올리지 않습니다.
+- `~/.hapi`, `~/.claude`, `~/.codex`와 provider credential은 서버에 둡니다.
+- 실제 프로젝트는 `~/projects` 아래에 분리합니다.
+- 특별한 이유가 없다면 HAPI 기본 Relay부터 사용합니다.

@@ -20,6 +20,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
+Environment=PATH=$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=$HAPI_BIN hub --relay
 Restart=always
 RestartSec=5
@@ -37,6 +38,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 KillMode=process
+Environment=PATH=$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin
 Environment=HAPI_RUNNER_SUPERVISED=1
 ExecStart=$HAPI_BIN runner start-sync --workspace-root $WORKSPACE
 Restart=always

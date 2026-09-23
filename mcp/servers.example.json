@@ -1,0 +1,29 @@
+{
+  "_comment": "Inventory only. Do not place secrets here. Register each server in the native Claude Code / Codex MCP configuration.",
+  "servers": [
+    {
+      "name": "github",
+      "scope": "shared",
+      "transport": "stdio-or-http",
+      "notes": "Register independently in Claude Code and Codex."
+    },
+    {
+      "name": "playwright",
+      "scope": "shared",
+      "transport": "stdio",
+      "notes": "Register independently in Claude Code and Codex."
+    },
+    {
+      "name": "cao",
+      "scope": "optional",
+      "transport": "stdio-or-http",
+      "notes": "Candidate orchestration layer for agent-decision-workbench."
+    },
+    {
+      "name": "jev",
+      "scope": "optional",
+      "transport": "connector-or-mcp",
+      "notes": "Decision/evaluation layer; prefer sidecar integration rather than forking HAPI."
+    }
+  ]
+}

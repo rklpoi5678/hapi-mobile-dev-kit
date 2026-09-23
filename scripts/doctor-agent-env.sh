@@ -4,13 +4,25 @@ set -euo pipefail
 ORACLE_HOST="${ORACLE_HOST:-${1:-}}"
 REMOTE_HOME="${REMOTE_HOME:-/home/ubuntu}"
 SSH_PORT="${SSH_PORT:-22}"
+SSH_KEY="${SSH_KEY:-}"
 
 if [ -z "$ORACLE_HOST" ]; then
-  echo "Usage: ORACLE_HOST=ubuntu@SERVER ./scripts/doctor-agent-env.sh" >&2
+  echo "Usage: ORACLE_HOST=ubuntu@SERVER SSH_KEY=/path/to/key ./scripts/doctor-agent-env.sh" >&2
   exit 1
 fi
 
-ssh -p "$SSH_PORT" "$ORACLE_HOST" bash -s -- "$REMOTE_HOME" <<'REMOTE'
+SSH=(ssh -p "$SSH_PORT")
+
+if [ -n "$SSH_KEY" ]; then
+  if [ ! -f "$SSH_KEY" ]; then
+    echo "SSH key not found: $SSH_KEY" >&2
+    exit 1
+  fi
+
+  SSH+=(-i "$SSH_KEY")
+fi
+
+"${SSH[@]}" "$ORACLE_HOST" bash -s -- "$REMOTE_HOME" <<'REMOTE'
 set -u
 REMOTE_HOME="$1"
 

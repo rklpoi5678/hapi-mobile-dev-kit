@@ -33,7 +33,7 @@ sync_one() {
   fi
 
   echo "import: $src -> $dst"
-  rsync -a "${delete_flag[@]}" \
+  rsync -a --no-links "${delete_flag[@]}" \
     --exclude='.git/' \
     --exclude='node_modules/' \
     --exclude='.env' \
